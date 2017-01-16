@@ -1,0 +1,177 @@
+---
+title: "Slow Learning for Quadratic Classification"
+subtitle: "An Iterated Linear Dimension Reduction Approach for Poorly-Posed Scenarios"
+author: "Dr. Gabriel Odom"
+output:
+  ioslides_presentation:
+logo: baylor_logo.png
+widescreen: true
+bibliography: HLDR_bib_abbr.bib
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Overiew of Topics
+
+- Introduction of the Problem
+- Four HLDR Techniques
+- Two Dimension Reduction Methods
+- Simulation Study
+- Real Data Case
+- Conclusion
+- Future work
+- References
+
+<div class="notes">
+  Smile! :) You got this!
+  </div>
+  
+# Introduction
+  
+## Introduction
+  
+- We want to classify observations from different elliptical distributions.
+- Real examples are often poorly posed ($n_i < p ^ 2 / 2$), thus precision matrix estimates are unstable.
+- We introduce a competetor to PCA which uses the bias-variance tradeoff to stabilize these etimates.
+- Employ dimension reduction to break the *curse of dimensionality* via iterated application of the singular value decomposition.
+
+# Four HLDR Techniques
+
+## Four HLDR Techniques
+
+ - Ounpraseuth et al. (SY)
+ - Loog and Duin (LD)
+ - Li's Sliced Inverse Regression (SIR)
+ - Cook and Weisberg's Sliced Average Variance Estimation (SAVE)
+ 
+## Notation
+Consider a data matrix $\textbf{X}$ containing $n$ observations from $K$ distinct $p$-dimensional multivariate normal distributions, with class means $\boldsymbol\mu_k$ and class covariances $\boldsymbol\Sigma_k$, for $k \in 1, \ldots, K$. Furthermore, define
+
+ - $\bar{\textbf{x}}_k$ is the sample mean vector for the $k^{th}$ class
+ - $\alpha_k$ is the *a priori* probability of class membership for the $k^{th}$ class
+ - $\bar{\textbf{x}} := \sum^K_{k = 1}\alpha_k\bar{\textbf{x}}_k$ is the grand mean
+ - $\textbf{S}_W := \sum_{k = 1}^K\alpha_k\textbf{S}_k$ is the sample within-class covariance
+ - $\textbf{S}_B := \sum^K_{k = 1}\left( \bar{\textbf{x}}_k - \bar{\textbf{x}} \right) \left( \bar{\textbf{x}}_k - \bar{\textbf{x}} \right)^T$ is the sample between-class covariance
+ - $\widehat{\boldsymbol\Gamma} := \textbf{S}_B + \textbf{S}_W$ is the estimated marginal covariance of the data matrix
+ 
+
+## Ounpraseuth et al (2016)
+The data summary matrix for the *SY LDR* method is
+\[
+\textbf{M} := \left[ \textbf{S}^{-1}_2 \bar{\textbf{x}}_2 - \textbf{S}^{-1}_1 \bar{\textbf{x}}_1, \ldots, \textbf{S}^{-1}_K \bar{\textbf{x}}_K - \textbf{S}^{-1}_1 \bar{\textbf{x}}_1, \textbf{S}_2 - \textbf{S}_1, \ldots, \textbf{S}_K - \textbf{S}_1 \right].
+\]
+
+## Loog and Duin (2004)
+The data summary matrix for the *LD LDR* method is
+\[
+\textbf{M} := \sum^{K - 1}_{i = 1} \sum^K_{j = i + 1} \alpha_i \alpha_j  \textbf{S}^{-1}_W \textbf{S}^{1/2}_W \left[ \tilde{\textbf{S}}^*_{ij} \right]  \textbf{S}^{1/2}_W,
+\]
+where
+\[
+\begin{aligned}
+\tilde{\textbf{S}}^*_{ij} &:= \left( \textbf{S}^*_{(i,j)} \right)^{-\frac{1}{2}} \textbf{S}^{-1/2}_W \left( \bar{\textbf{x}}_i -  \bar{\textbf{x}}_j \right) \left( \bar{\textbf{x}}_i - \bar{\textbf{x}}_j \right)^T  \textbf{S}^{-1/2}_W \left( \textbf{S}^*_{(i,j)} \right)^{-\frac{1}{2}} \\
+&\qquad + 
+\frac{1}{\pi_i \pi_j} \left[ \log\left( \textbf{S}^*_{(i,j)} \right) - \pi_i \log\left( \textbf{S}^*_{(i,i)} \right) - \pi_j  \log\left( \textbf{S}^*_{(j,j)} \right) \right]
+\end{aligned}
+\]
+and $\textbf{S}^*_{(i,j)} = \textbf{S}^{-1/2}_W \left( \pi_i\textbf{S}_i + \pi_j\textbf{S}_j \right) \textbf{S}^{-1/2}_W$.
+
+## Sliced Inverse Regression (1991)
+The data summary matrix for the *SIR LDR* method is
+\[
+\textbf{M} := \widehat{\boldsymbol\Gamma}^{-1/2}\textbf{S}_B\widehat{\boldsymbol\Gamma}^{-1/2}.
+\]
+
+## Sliced Average Variance Estimation (1991)
+The data summary matrix for the *SAVE LDR* method is
+\[
+\textbf{M} := \left( \widehat{\boldsymbol\Gamma}^{-1/2} \textbf{S}_B \widehat{\boldsymbol\Gamma}^{-1/2} \right)^2 +  \widehat{\boldsymbol\Gamma}^{-1/2} \textbf{S}_{\widehat{\boldsymbol\Gamma}} \widehat{\boldsymbol\Gamma}^{-1/2},
+\]
+where
+\[
+\textbf{S}_{\widehat{\boldsymbol\Gamma}} := \frac{1}{K}\sum_{k = 1}^{K} \left( \textbf{S}_k - \textbf{S}_W \right) \widehat{\boldsymbol\Gamma}^{-1} \left( \textbf{S}_k - \textbf{S}_W \right).
+\]
+
+
+# Current vs Slow Learning \emph{LDR} Algorithms
+
+## PCA
+
+The Principal Components Analysis (*PCA*) Algorithm for dimension reduction is as follows:
+
+1.  Whiten the $n \times p$ data matrix $\textbf{X}$.
+2.  Construct the appropriate $\textbf{M}$.
+3.  Take the Singular Value Decomposition of $\textbf{M} = \textbf{UDV}^T$.
+4.  Choose a target dimension $q$ such that the largest $q$ singular values of $\textbf{M}$ account for at least $(1 - \alpha)$\% of the sum of all singular values (the energy) of $\textbf{M}$.
+5.  Select the first $q$ singular vectors of $\textbf{U}$ to be the $p \times q$ projection matrix.
+6.  Multiply the $n \times p$ data matrix by the $p \times q$ projection matrix to linearlly reduce the data from $p$ to $q$ dimensions, while preserving $(1 - \alpha)$\% of the energy of the data matrix.
+
+
+  
+## Slow Learning
+
+The Slow Learning Linear Dimension Reduction (\emph{SLLDR}) Algorithm for dimension reduction is as follows:
+
+1.  Whiten the $n \times p$ data matrix $\textbf{X}$.
+for$(i \text{in} 1:\text{steps})$
+2.  Construct the appropriate $\textbf{M}$.
+3.  Take the Singular Value Decomposition of $\textbf{M} = \textbf{UDV}^T$.
+4.  Choose a target dimension $q_i$ such that the largest $q_i$ singular values of $\textbf{M}$ account for at least $(1 - \alpha / \text{steps})$\% of the sum of all singular values (the energy) of $\textbf{M}$.
+5.  Select the first $q_i$ singular vectors of $\textbf{U}$ to be the $p \times q_i$ projection matrix.
+6.  Multiply the $n \times p$ data matrix by the $p \times q_i$ projection matrix to linearlly reduce the data from $p$ to $q_i$ dimensions.
+end(for)
+7.  Return the new $n\times q_{\text{steps}}$ data matrix.
+
+# Simulation Study
+
+## Simulation Setup
+
+<ol>
+<li>For each class, generate 5,000 observations from the designated multivariate normal distribution.</li>
+<li>Partition the 5,000 observations from each class into a training and testing data set 
+<ol type = "i">
+<li>To synthesize poorly-posed scenarios, take $n = 15$ training observations per class.</li>
+<li> Hold 4,985 observations aside for testing.</li>
+</ol>
+</li>
+</ol>
+    
+## Simulation Setup
+<ol start = "3">
+<li>For each method:
+<ol type = "i">
+<li>Project the training and test data down from $p$ to $r$ dimensions.</li>
+<li>Construct the classifier.</li>
+<li>Classify the test observations.</li>
+<li>Record the conditional error rate.</li>
+</ol>
+</li>
+<li>Repeat Steps 1--3 5,000 times.</li>
+<li>Increase $n$ from 15 to 30 then 60, and repeat Steps 1--4</li>
+</ol>
+
+See supplementary material for mean and covariance specifications.
+
+## Configuration 1 Results
+
+
+
+# Summary and References
+
+## Summary
+
+- Looked at two samples of high-dimensional data
+- Considered four methods of testing equality of two high-dimensional mean vectors
+- Used singular valued decomposition to reduce dimension of data sets
+- Considered two methods of quantile estimation
+- Compared methods via power simulation
+
+## References {.smaller}
+
+---
+
+...
+
+
