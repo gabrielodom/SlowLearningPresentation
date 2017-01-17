@@ -217,6 +217,8 @@ knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/D
 - Produced simulation results showing Slow Learning algorithm efficacy
 - Applied our algorithm to two real-world classification exercises
 
+Special thanks to @bache_uci_2013 for managing the UC-Irvine Machine Learning Repository -- a wealth of real machine learning data.
+
 <style>
 slides > slide { overflow: scroll; }
 slides > slide:not(.nobackground):after {
