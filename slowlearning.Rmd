@@ -2,8 +2,6 @@
 title: "Slow Learning for Quadratic Classification"
 subtitle: "An Iterated Linear Dimension Reduction Approach for Poorly-Posed Scenarios"
 author: "Dr. Gabriel Odom"
-header-includes:
-  - \usepackage[linesnumbered, ruled]{algorithm2e}
 output:
   ioslides_presentation:
 logo: baylor_logo.png
