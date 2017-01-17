@@ -2,6 +2,8 @@
 title: "Slow Learning for Quadratic Classification"
 subtitle: "An Iterated Linear Dimension Reduction Approach for Poorly-Posed Scenarios"
 author: "Dr. Gabriel Odom"
+header-includes:
+  - \usepackage[linesnumbered, ruled]{algorithm2e}
 output:
   ioslides_presentation:
 logo: baylor_logo.png
@@ -13,14 +15,15 @@ bibliography: SL_bib_abbr.bib
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Overview of Topics
+## Overiew of Topics
 
-- Introduction to the Problem
+- Introduction of the Problem
 - Four HLDR Techniques
 - Two Dimension Reduction Methods
 - Simulation Study
-- Real Data Cases
+- Real Data Case
 - Conclusion
+- Future work
 - References
 
 <div class="notes">
@@ -33,8 +36,8 @@ knitr::opts_chunk$set(echo = FALSE)
   
 - We want to classify observations from different elliptical distributions.
 - Real examples are often poorly posed ($n_i < p ^ 2 / 2$), thus precision matrix estimates are unstable.
-- We introduce a competitor to PCA which uses the bias-variance tradeoff to stabilize these covariance estimates.
-- We employ linear dimension reduction to break the *curse of dimensionality* via iterated application of the singular value decomposition.
+- We introduce a competetor to PCA which uses the bias-variance tradeoff to stabilize these etimates.
+- Employ dimension reduction to break the *curse of dimensionality* via iterated application of the singular value decomposition.
 
 # Four HLDR Techniques
 
@@ -123,22 +126,22 @@ The Principal Components Analysis (*PCA*) Algorithm for dimension reduction (usi
   
 ## Slow Learning
 
-The Slow Learning Linear Dimension Reduction (*SLLDR*) Algorithm is as follows:
+The Slow Learning Linear Dimension Reduction (*SLLDR*) Algorithm for dimension reduction is as follows:
 
 1.  Whiten the $n \times p$ data matrix $\textbf{X}$.
 2.  Construct the appropriate $\textbf{M}$.
-3.  Take the *SVD* of $\textbf{M} = \textbf{UDV}^T$.
+3.  Take the Singular Value Decomposition of $\textbf{M} = \textbf{UDV}^T$.
 4.  Choose a target dimension $q_i$ such that the largest $q_i$ singular values of $\textbf{M}$ account for at least $(1 - \alpha / \text{steps})$\% of the energy of $\textbf{M}$.
 5.  Select the first $q_i$ singular vectors of $\textbf{U}$ to be the $p \times q_i$ projection matrix.
-6.  Multiply the $n \times p$ data matrix by the $p \times q_i$ projection matrix to linearly reduce the data from $p$ to $q_i$ dimensions.
+6.  Multiply the $n \times p$ data matrix by the $p \times q_i$ projection matrix to linearlly reduce the data from $p$ to $q_i$ dimensions.
 7.  Repeat Steps 2 -- 6.
 
-## The Algorithm in Detail
+## The Algorithm
 ```{r, out.width = "1000px"}
 knitr::include_graphics("SL_AlgorithmCapture_LR.JPG")
 ```
 
-The difference of note between the PCA and Slow Learning algorithms: Slow Learning takes a few smaller "jumps" in dimension reduction rather than one large jump.
+The difference of note between PCA and Slow Learning: the Slow Learning takes a few smaller "jumps" in dimension reduction rather than one large jump.
 
 ## A Projection Matrix Result
 *Theorem 2:*
@@ -151,7 +154,7 @@ Suppose we have a sequence of subspace projection matrices $\textbf{U}_{p \times
 ## A Projection Matrix Result
 *Proof:*
 
-Let $\textbf{X} \in \mathbb{R}_{n \times p}$ be an arbitrary matrix signifying a data frame of $n$ observations in $p$ dimensions. Let $\textbf{M}^{(1)} = \textbf{U}^{(1)}\textbf{DV}^T$ be the *SVD* of an $\textbf{M}$ matrix of $\textbf{X}$. Then by Theorem 1, the linear projection preserving *essentially* all the classification information of $\textbf{X}$ is the first $q_1$ columns of the matrix $\textbf{U}^{(1)}$. Now let $\textbf{M}^{(2)} = \textbf{U}^{(2)}\textbf{DV}^T$ be the *SVD* of the $\textbf{M}$ matrix of $\textbf{X}^{(1)}_{n \times q_1} = \textbf{X}\textbf{U}^{(1)}_{p \times q_1}$. Similarly,
+Let $\textbf{X} \in \mathbb{R}_{n \times p}$ be an arbitrary matrix signifying a data frame of $n$ observations in $p$ dimensions. Let $\textbf{M}^{(1)} = \textbf{U}^{(1)}\textbf{DV}^T$ be the \textit{SVD} of an $\textbf{M}$ matrix of $\textbf{X}$. Then by Theorem 1, the linear projection preserving \textit{essentially} all the \textit{BPMC} of $\textbf{X}$ is the first $q_1$ columns of the matrix $\textbf{U}^{(1)}$. Now let $\textbf{M}^{(2)} = \textbf{U}^{(2)}\textbf{DV}^T$ be the \textit{SVD} of the $\textbf{M}$ matrix of $\textbf{X}^{(1)}_{n \times q_1} = \textbf{X}\textbf{U}^{(1)}_{p \times q_1}$. Similarly,
 $$
 \begin{aligned}
 \textbf{X}^{(2)}_{n \times q_2} &= \textbf{X} \times \textbf{U}^{(1)}_{p \times q_1} \times \textbf{U}^{(2)}_{q_1 \times q_2} \\
@@ -167,10 +170,10 @@ $$
 ## Simulation Setup
 
 <ol>
-<li>For each class, generate 5,000 observations from the designated 10-dimensional multivariate normal distribution.</li>
+<li>For each class, generate 5,000 observations from the designated multivariate normal distribution.</li>
 <li>Partition the 5,000 observations from each class into a training and testing data set 
 <ol type = "i">
-<li>To simulate poorly-posed scenarios, take $n = 15$ training observations per class.</li>
+<li>To synthesize poorly-posed scenarios, take $n = 15$ training observations per class.</li>
 <li> Hold 4,985 observations aside for testing.</li>
 </ol>
 </li>
@@ -183,46 +186,39 @@ $$
 <li>Project the training and test data down from $p$ to $r$ dimensions, for $r\in 1,\ldots, p - 1$.</li>
 <li>Construct the classifier.</li>
 <li>Classify the test observations.</li>
-<li>Calculate the conditional error rate.</li>
+<li>Record the conditional error rate.</li>
 </ol>
 </li>
 <li>Repeat Steps 1--3 5,000 times.</li>
-<li>Increase $n$ from 15 to 30 then 60, and repeat Steps 1--4.</li>
+<li>Increase $n$ from 15 to 30 then 60, and repeat Steps 1--4</li>
 </ol>
 
+See supplementary material for mean and covariance specifications.
 
 ## Synthetic Data Results
 ```{r}
-knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Config13_FacetWrap17012017.png")
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Config13_FacetWrap16012017.png")
 ```
 
-## Ionosphere Returns [@sigillito_classification_1989]
+## Ionosphere Results from @sigillito_classification_1989
 ```{r}
-knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Ion_FacetWrap17012017.png")
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Ion_FacetWrap16012017.png")
 ```
 
-## Self-Driving Car Faults [@paschke_sensorlose_2013]
+## Drive Diagnosis Results from @paschke_sensorlose_2013
 ```{r}
-knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/DriverlessCar_FacetWrap17012017.png")
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/DriverlessCar_FacetWrap16012017.png")
 ```
 
 # Summary and References
 
 ## Summary
 
-- We discussed four linear dimension reduction methods, and we compared two decompostion algorithms.
-- We produced simulation results showing Slow Learning algorithm efficacy when contrasted against the common approach.
-- We further applied our algorithm to two real-world classification exercises, showing the viability of Slow Learning as a dimension reduction strategy.
+- Discussed four linear dimension reduction methods
+- Presented and compared two decompostion algorithms
+- Produced simulation results showing Slow Learning algorithm efficacy
+- Applied our algorithm to two real-world classification exercises
 
-We give special thanks to @bache_uci_2013 for managing the UC-Irvine Machine Learning Repository---a wealth of real machine learning data.
+## References {.smaller}
 
-<style>
-slides > slide { overflow: scroll; }
-slides > slide:not(.nobackground):after {
-  content: '';
-}
-</style>
-
-
-## References 
 
