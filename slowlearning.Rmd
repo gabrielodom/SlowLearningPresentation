@@ -2,11 +2,13 @@
 title: "Slow Learning for Quadratic Classification"
 subtitle: "An Iterated Linear Dimension Reduction Approach for Poorly-Posed Scenarios"
 author: "Dr. Gabriel Odom"
+header-includes:
+  - \usepackage[linesnumbered, ruled]{algorithm2e}
 output:
   ioslides_presentation:
 logo: baylor_logo.png
 widescreen: true
-bibliography: HLDR_bib_abbr.bib
+bibliography: SL_bib_abbr.bib
 ---
   
 ```{r setup, include=FALSE}
@@ -41,10 +43,10 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Four HLDR Techniques
 
- - Ounpraseuth et al. (SY)
- - Loog and Duin (LD)
- - Li's Sliced Inverse Regression (SIR)
- - Cook and Weisberg's Sliced Average Variance Estimation (SAVE)
+ - SY from @ounpraseuth_linear_2015
+ - Sliced Inverse Regression (SIR) from @li_sliced_1991
+ - LD from @loog_linear_2004
+ - Sliced Average Variance Estimation (SAVE) from @cook_sliced_1991
  
 ## Notation
 Consider a data matrix $\textbf{X}$ containing $n$ observations from $K$ distinct $p$-dimensional multivariate normal distributions, with class means $\boldsymbol\mu_k$ and class covariances $\boldsymbol\Sigma_k$, for $k \in 1, \ldots, K$. Furthermore, define
@@ -56,11 +58,29 @@ Consider a data matrix $\textbf{X}$ containing $n$ observations from $K$ distinc
  - $\textbf{S}_B := \sum^K_{k = 1}\left( \bar{\textbf{x}}_k - \bar{\textbf{x}} \right) \left( \bar{\textbf{x}}_k - \bar{\textbf{x}} \right)^T$ is the sample between-class covariance
  - $\widehat{\boldsymbol\Gamma} := \textbf{S}_B + \textbf{S}_W$ is the estimated marginal covariance of the data matrix
  
+## A Dimension Reduction Result
+*Theorem 1:*
 
-## Ounpraseuth et al (2016)
-The data summary matrix for the *SY LDR* method is
+Suppose we have $K$ multivariate normal populations each with mean $\boldsymbol\mu_k$, covariance matrix $\boldsymbol\Sigma_k \in \mathbb{R}^>_{p}$, and \textit{a priori} class membership $\alpha_k$, where $k = 1,...,K$.  Also, let 
+\[
+\textbf{M} := \left[\boldsymbol\Sigma^{-1}_2 \boldsymbol\mu_2 - \boldsymbol\Sigma^{-1}_1 \boldsymbol\mu_1 |...| \boldsymbol\Sigma^{-1}_K \boldsymbol\mu_K - \boldsymbol\Sigma^{-1}_1 \boldsymbol\mu_1 | \boldsymbol\Sigma_2 - \boldsymbol\Sigma_1 |...| \boldsymbol\Sigma_K - \boldsymbol\Sigma_1\right],
+\]
+where rank$(\textbf{M}) = q < p$, and let $\textbf{M} = \textbf{FG}$ be a full-rank decomposition of $\textbf{M}$, where $\textbf{F} \in \mathbb{R}_{p \times q}$.  Then, for an unlabeled observation vector $\textbf{x} \in \mathbb{R}_{p \times 1}$, $d_k(\textbf{x}) = d_k\left( \textbf{F}^+ \textbf{x} \right)$, where $d_k(\textbf{x})$ is the quadtratic discriminant function for the $k^{th}$ class and $k = 1,...,K$.
+
+*Proof:* See @ounpraseuth_linear_2015.
+ 
+
+## Two Simpler Methods
+### SY
+The data summary matrix for the *SY LDR* method of Ounpraseuth et al (2016) is
 \[
 \textbf{M} := \left[ \textbf{S}^{-1}_2 \bar{\textbf{x}}_2 - \textbf{S}^{-1}_1 \bar{\textbf{x}}_1, \ldots, \textbf{S}^{-1}_K \bar{\textbf{x}}_K - \textbf{S}^{-1}_1 \bar{\textbf{x}}_1, \textbf{S}_2 - \textbf{S}_1, \ldots, \textbf{S}_K - \textbf{S}_1 \right].
+\]
+
+### SIR
+The data summary matrix for the *SIR LDR* method of Li (1991) is
+\[
+\textbf{M} := \widehat{\boldsymbol\Gamma}^{-1/2}\textbf{S}_B\widehat{\boldsymbol\Gamma}^{-1/2}.
 \]
 
 ## Loog and Duin (2004)
@@ -78,14 +98,8 @@ where
 \]
 and $\textbf{S}^*_{(i,j)} = \textbf{S}^{-1/2}_W \left( \pi_i\textbf{S}_i + \pi_j\textbf{S}_j \right) \textbf{S}^{-1/2}_W$.
 
-## Sliced Inverse Regression (1991)
-The data summary matrix for the *SIR LDR* method is
-\[
-\textbf{M} := \widehat{\boldsymbol\Gamma}^{-1/2}\textbf{S}_B\widehat{\boldsymbol\Gamma}^{-1/2}.
-\]
-
 ## Sliced Average Variance Estimation (1991)
-The data summary matrix for the *SAVE LDR* method is
+Using the notation modification of @velilla_method_2008 to Cook and Weisberg's original work, the data summary matrix for the *SAVE LDR* method is
 \[
 \textbf{M} := \left( \widehat{\boldsymbol\Gamma}^{-1/2} \textbf{S}_B \widehat{\boldsymbol\Gamma}^{-1/2} \right)^2 +  \widehat{\boldsymbol\Gamma}^{-1/2} \textbf{S}_{\widehat{\boldsymbol\Gamma}} \widehat{\boldsymbol\Gamma}^{-1/2},
 \]
@@ -95,34 +109,61 @@ where
 \]
 
 
-# Current vs Slow Learning \emph{LDR} Algorithms
+# Current vs. Slow Learning \emph{LDR} Algorithms
 
 ## PCA
 
-The Principal Components Analysis (*PCA*) Algorithm for dimension reduction is as follows:
+The Principal Components Analysis (*PCA*) Algorithm for dimension reduction (using the Singular Value Decomposition of @eckart_approximation_1936) is as follows:
 
 1.  Whiten the $n \times p$ data matrix $\textbf{X}$.
 2.  Construct the appropriate $\textbf{M}$.
-3.  Take the Singular Value Decomposition of $\textbf{M} = \textbf{UDV}^T$.
-4.  Choose a target dimension $q$ such that the largest $q$ singular values of $\textbf{M}$ account for at least $(1 - \alpha)$\% of the sum of all singular values (the energy) of $\textbf{M}$.
+3.  Calculate the *SVD* of $\textbf{M} = \textbf{UDV}^T$.
+4.  Choose a target dimension $q$ such that the largest $q$ singular values of $\textbf{M}$ account for at least $(1 - \alpha)$\% of the sum of all singular values (energy) of $\textbf{M}$.
 5.  Select the first $q$ singular vectors of $\textbf{U}$ to be the $p \times q$ projection matrix.
-6.  Multiply the $n \times p$ data matrix by the $p \times q$ projection matrix to linearlly reduce the data from $p$ to $q$ dimensions, while preserving $(1 - \alpha)$\% of the energy of the data matrix.
+6.  Multiply the $n \times p$ data matrix by the $p \times q$ projection matrix to linearly reduce the data from $p$ to $q$ dimensions, while preserving $(1 - \alpha)$\% of the energy of the data matrix.
 
 
   
 ## Slow Learning
 
-The Slow Learning Linear Dimension Reduction (\emph{SLLDR}) Algorithm for dimension reduction is as follows:
+The Slow Learning Linear Dimension Reduction (*SLLDR*) Algorithm for dimension reduction is as follows:
 
 1.  Whiten the $n \times p$ data matrix $\textbf{X}$.
-for$(i \text{in} 1:\text{steps})$
 2.  Construct the appropriate $\textbf{M}$.
 3.  Take the Singular Value Decomposition of $\textbf{M} = \textbf{UDV}^T$.
-4.  Choose a target dimension $q_i$ such that the largest $q_i$ singular values of $\textbf{M}$ account for at least $(1 - \alpha / \text{steps})$\% of the sum of all singular values (the energy) of $\textbf{M}$.
+4.  Choose a target dimension $q_i$ such that the largest $q_i$ singular values of $\textbf{M}$ account for at least $(1 - \alpha / \text{steps})$\% of the energy of $\textbf{M}$.
 5.  Select the first $q_i$ singular vectors of $\textbf{U}$ to be the $p \times q_i$ projection matrix.
 6.  Multiply the $n \times p$ data matrix by the $p \times q_i$ projection matrix to linearlly reduce the data from $p$ to $q_i$ dimensions.
-end(for)
-7.  Return the new $n\times q_{\text{steps}}$ data matrix.
+7.  Repeat Steps 2 -- 6.
+
+## The Algorithm
+```{r, out.width = "1000px"}
+knitr::include_graphics("SL_AlgorithmCapture_LR.JPG")
+```
+
+The difference of note between PCA and Slow Learning: the Slow Learning takes a few smaller "jumps" in dimension reduction rather than one large jump.
+
+## A Projection Matrix Result
+*Theorem 2:*
+
+Suppose we have a sequence of subspace projection matrices $\textbf{U}_{p \times q_1}^{(1)}, \ldots, \textbf{U}_{q_{i - 1} \times q_i}^{(i)}$. Then the composition of the $i$ linear mappings can be represented by the chain of projection matrix multiplication
+\[
+\textbf{U}^*_{p \times q_i} = \textbf{U}_{p \times q_1}^{(1)} \times \ldots \times \textbf{U}_{q_{i - 1} \times q_i}^{(i)}.
+\]
+
+## A Projection Matrix Result
+*Proof:*
+
+Let $\textbf{X} \in \mathbb{R}_{n \times p}$ be an arbitrary matrix signifying a data frame of $n$ observations in $p$ dimensions. Let $\textbf{M}^{(1)} = \textbf{U}^{(1)}\textbf{DV}^T$ be the *SVD* of an $\textbf{M}$ matrix of $\textbf{X}$. Then by Theorem 1, the linear projection preserving *essentially* all the classification information of $\textbf{X}$ is the first $q_1$ columns of the matrix $\textbf{U}^{(1)}$. Now let $\textbf{M}^{(2)} = \textbf{U}^{(2)}\textbf{DV}^T$ be the *SVD* of the $\textbf{M}$ matrix of $\textbf{X}^{(1)}_{n \times q_1} = \textbf{X}\textbf{U}^{(1)}_{p \times q_1}$. Similarly,
+$$
+\begin{aligned}
+\textbf{X}^{(2)}_{n \times q_2} &= \textbf{X} \times \textbf{U}^{(1)}_{p \times q_1} \times \textbf{U}^{(2)}_{q_1 \times q_2} \\
+&\vdots \\
+\Longrightarrow\qquad \textbf{X}^{(i)}_{n \times q_i} &= \textbf{X} \times \textbf{U}^{(1)}_{p \times q_1} \times \textbf{U}^{(2)}_{q_1 \times q_2} \times \ldots \times \textbf{U}_{q_{i - 1} \times q_i}^{(i)} \\
+&= \textbf{X} \times \textbf{U}^*_{p \times q_i}.
+\end{aligned}
+$$
+
 
 # Simulation Study
 
@@ -142,7 +183,7 @@ end(for)
 <ol start = "3">
 <li>For each method:
 <ol type = "i">
-<li>Project the training and test data down from $p$ to $r$ dimensions.</li>
+<li>Project the training and test data down from $p$ to $r$ dimensions, for $r\in 1,\ldots, p - 1$.</li>
 <li>Construct the classifier.</li>
 <li>Classify the test observations.</li>
 <li>Record the conditional error rate.</li>
@@ -154,24 +195,37 @@ end(for)
 
 See supplementary material for mean and covariance specifications.
 
-## Configuration 1 Results
+## Synthetic Data Results
+```{r}
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Config13_FacetWrap16012017.png")
+```
 
+## Ionosphere Results from @sigillito_classification_1989
+```{r}
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/Ion_FacetWrap16012017.png")
+```
 
+## Drive Diagnosis Results from @paschke_sensorlose_2013
+```{r}
+knitr::include_graphics("C:/Users/gabriel_odom/Box Sync/Research/Slow Learning/DriverlessCar_FacetWrap16012017.png")
+```
 
 # Summary and References
 
 ## Summary
 
-- Looked at two samples of high-dimensional data
-- Considered four methods of testing equality of two high-dimensional mean vectors
-- Used singular valued decomposition to reduce dimension of data sets
-- Considered two methods of quantile estimation
-- Compared methods via power simulation
+- Discussed four linear dimension reduction methods
+- Presented and compared two decompostion algorithms
+- Produced simulation results showing Slow Learning algorithm efficacy
+- Applied our algorithm to two real-world classification exercises
 
-## References {.smaller}
+<style>
+slides > slide { overflow: scroll; }
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+</style>
 
----
 
-...
-
+## References 
 
